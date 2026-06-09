@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AMC Haluoleo — Inspeksi Harian</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="topbar-logo">✈️</div>
+    <div>
+      <div class="topbar-title">AMC HLO</div>
+      <div class="topbar-sub">INSPEKSI APRON HARIAN</div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-officer" id="topOfficer"></span>
+      <div class="status-dot"></div>
+    </div>
+  </div>
+
+  <!-- ── STEP BAR ── -->
+  <div class="step-bar" id="stepBar"></div>
+
+  <!-- ── CONTENT ── -->
+  <div class="content">
+
+    <!-- STEP 0: PETUGAS -->
+    <div class="step-page active" id="page0">
+      <div class="welcome-hero">
+        <div class="welcome-icon">✈️</div>
+        <div class="welcome-title">AMC HALUOLEO</div>
+        <div class="welcome-sub">Sistem Inspeksi Harian Apron</div>
+        <div class="welcome-date" id="welcomeDate"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span>👤</span>
+          <span class="card-header-title">Identitas Petugas</span>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label class="lbl" for="selOfficer">Nama Petugas</label>
+            <select id="selOfficer">
+              <option value="">Pilih petugas...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="selShift">Shift</label>
+            <select id="selShift">
+              <option value="">Pilih shift...</option>
+            </select>
+          </div>
+          <div id="reportIdBox" class="report-id-box" style="display:none">
+            <div class="report-id-lbl">Report ID</div>
+            <div class="report-id-val" id="reportIdVal"></div>
+            <div class="report-id-time" id="reportIdTime"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: CHECKLIST -->
+    <div class="step-page" id="page1">
+      <div class="card">
+        <div class="card-header">
+          <span>⚡</span>
+          <span class="card-header-title">Fast Inspection Mode</span>
+        </div>
+        <div class="card-body">
+          <p class="text-sm text-muted mb-3">
+            Semua item default: <span class="text-green bold">GOOD</span>.
+            Ubah hanya item yang bermasalah.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box"><div class="stat-num text-green" id="statGood">0</div><div class="stat-lbl">Good</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:#f59e0b" id="statAttn">0</div><div class="stat-lbl">Attn</div></div>
+            <div class="stat-box"><div class="stat-num text-red" id="statDmgd">0</div><div class="stat-lbl">Rusak</div></div>
+            <div class="stat-box"><div class="stat-num text-amber" id="statScore">100%</div><div class="stat-lbl">Score</div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" id="progressFill" style="width:100%"></div>
+          </div>
+        </div>
+      </div>
+      <div id="checklistContainer"></div>
+    </div>
+
+    <!-- STEP 2: TEMUAN -->
+    <div class="step-page" id="page2">
+      <div class="card">
+        <div class="card-header">
+          <span>🔍</span>
+          <span class="card-header-title">Temuan Inspeksi</span>
+          <span class="card-header-badge" id="findingCount">0 temuan</span>
+        </div>
+        <div class="card-body">
+          <p class="text-sm text-muted mb-3">Catat semua temuan atau observasi selama inspeksi apron.</p>
+          <button class="btn btn-primary btn-full" onclick="openFindingModal()">+ Tambah Temuan</button>
+        </div>
+      </div>
+      <div id="findingsContainer">
+        <div class="empty-state" id="findingsEmpty">
+          <div class="empty-icon">🟢</div>
+          <div class="text-sm">Tidak ada temuan — apron aman</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PENUTUP -->
+    <div class="step-page" id="page3">
+      <div class="card">
+        <div class="card-header">
+          <span>📋</span>
+          <span class="card-header-title">Penutup Laporan</span>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label class="lbl" for="specialEvents">Kejadian Khusus</label>
+            <textarea id="specialEvents" placeholder="Catat kejadian khusus selama shift (jika ada)..." style="min-height:90px"></textarea>
+          </div>
+          <div class="field">
+            <label class="lbl" for="conclusion">Kesimpulan</label>
+            <textarea id="conclusion" placeholder="Kesimpulan umum kondisi apron..." style="min-height:90px"></textarea>
+          </div>
+          <div class="field">
+            <label class="lbl" for="nextShift">Catatan Shift Berikutnya</label>
+            <textarea id="nextShift" placeholder="Hal-hal yang perlu diperhatikan shift berikutnya..." style="min-height:90px"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: TANDA TANGAN -->
+    <div class="step-page" id="page4">
+      <div class="card">
+        <div class="card-header">
+          <span>✍️</span>
+          <span class="card-header-title">Tanda Tangan Digital</span>
+        </div>
+        <div class="card-body">
+          <p class="text-sm text-muted mb-2">Tanda tangani laporan menggunakan jari pada layar di bawah.</p>
+          <p class="text-xs mono text-muted mb-3">
+            Petugas: <span class="text-amber" id="sigOfficerName"></span>
+          </p>
+          <canvas id="sigCanvas"></canvas>
+          <p class="sig-hint" id="sigHint">Gambar tanda tangan di sini</p>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" onclick="clearSig()">Hapus</button>
+            <span class="text-xs text-green" id="sigOk" style="display:none">✓ Tanda tangan tersimpan</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: SELESAI -->
+    <div class="step-page" id="page5">
+      <div class="complete-hero">
+        <div class="complete-icon">✅</div>
+        <div class="complete-title">LAPORAN TERSIMPAN</div>
+        <div class="complete-sub" id="completeSub"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>📊</span><span class="card-header-title">Ringkasan Laporan</span></div>
+        <div class="card-body">
+          <div class="summary-grid" id="summaryGrid"></div>
+          <div class="stat-row" id="summaryStats"></div>
+        </div>
+      </div>
+      <div class="card" id="summaryFindingsCard" style="display:none">
+        <div class="card-header"><span>⚠️</span><span class="card-header-title">Status Temuan</span></div>
+        <div class="card-body" id="summaryFindingsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>🚀</span><span class="card-header-title">Aksi</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button  class="btn btn-primary btn-full" onclick="saveToSheets()">
+              💾 Simpan ke Database
+            </button>
+            <button class="btn btn-wa btn-full" onclick="shareWA()">
+              📱 Bagikan via WhatsApp
+            </button>
+            <button class="btn btn-ghost btn-full" onclick="resetApp()">
+              🔄 Inspeksi Baru
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ── BOTTOM NAV ── -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="btn btn-ghost" style="flex:1" id="btnBack" onclick="prevStep()">← Kembali</button>
+    <button class="btn btn-primary" style="flex:2" id="btnNext" onclick="nextStep()">Lanjut →</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── FINDING MODAL ── -->
+<div class="modal-overlay" id="findingModal" onclick="modalOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Temuan Baru</div>
+
+    <div class="field">
+      <label class="lbl">Lokasi</label>
+      <select id="fLoc"></select>
+    </div>
+
+    <div class="field">
+      <label class="lbl">Kategori</label>
+      <select id="fCat" onchange="onCatChange()">
+        <option value="">Pilih kategori...</option>
+      </select>
+    </div>
+
+    <!-- Wildlife Module -->
+    <div class="wildlife-box" id="wildlifeBox" style="display:none">
+      <div class="wildlife-title">🐦 Wildlife Module</div>
+      <div class="field">
+        <label class="lbl">Jenis Hewan</label>
+        <select id="fAnimal">
+          <option value="">Pilih...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Jumlah</label>
+        <input type="number" id="fQty" min="1" placeholder="0" />
+      </div>
+      <div class="field">
+        <label class="lbl">Tindakan Mitigasi</label>
+        <textarea id="fMitigation" placeholder="Tindakan yang diambil..." style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">Tingkat Risiko</label>
+      <div class="risk-pills">
+        <div class="risk-pill" id="rLow"  onclick="setRisk('Low')"    style="color:#22c55e;border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.08)">Low</div>
+        <div class="risk-pill" id="rMed"  onclick="setRisk('Medium')" style="color:#f59e0b;border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.08)">Med</div>
+        <div class="risk-pill" id="rHigh" onclick="setRisk('High')"   style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08)">High</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">Deskripsi</label>
+      <textarea id="fDesc" placeholder="Deskripsi temuan..." style="min-height:80px"></textarea>
+    </div>
+
+    <div class="field">
+      <label class="lbl">Foto (Wajib)</label>
+      <div class="photo-upload-area" onclick="document.getElementById('fPhotoInput').click()">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-text">Tambah Foto Temuan</div>
+        <div class="photo-upload-sub">Tap untuk memilih foto</div>
+      </div>
+      <input type="file" id="fPhotoInput" accept="image/*" multiple onchange="handleFindingPhotos(event)" />
+      <div class="photo-grid" id="fPhotoGrid"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeFindingModal()">Batal</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveFinding()">Simpan Temuan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── SCRIPTS ── -->
+<!-- Urutan penting: data dulu, lalu modul, lalu app -->
+<script src="js/data.js"></script>
+<script src="js/checklist.js"></script>
+<script src="js/findings.js"></script>
+<script src="js/signature.js"></script>
+<script src="js/app.js"></script>
+
+<!-- Populate dropdowns dari data.js -->
+<script>
+  // Isi dropdown officer
+  const selOfficer = document.getElementById("selOfficer");
+  OFFICERS.forEach(name => {
+    const opt = document.createElement("option");
+    opt.textContent = name;
+    selOfficer.appendChild(opt);
+  });
+
+  // Isi dropdown shift
+  const selShift = document.getElementById("selShift");
+  SHIFTS.forEach(s => {
+    const opt = document.createElement("option");
+    opt.textContent = s;
+    selShift.appendChild(opt);
+  });
+
+  // Isi dropdown lokasi finding
+  const fLoc = document.getElementById("fLoc");
+  fLoc.innerHTML = '<option value="">Pilih lokasi...</option>';
+  FINDING_LOCATIONS.forEach(l => {
+    const opt = document.createElement("option");
+    opt.textContent = l;
+    fLoc.appendChild(opt);
+  });
+
+  // Isi dropdown kategori finding
+  const fCat = document.getElementById("fCat");
+  fCat.innerHTML = '<option value="">Pilih kategori...</option>';
+  FINDING_CATEGORIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.textContent = c;
+    fCat.appendChild(opt);
+  });
+
+  // Isi dropdown jenis hewan
+  const fAnimal = document.getElementById("fAnimal");
+  fAnimal.innerHTML = '<option value="">Pilih...</option>';
+  ANIMAL_TYPES.forEach(a => {
+    const opt = document.createElement("option");
+    opt.textContent = a;
+    fAnimal.appendChild(opt);
+  });
+</script>
+
+</body>
+</html>
