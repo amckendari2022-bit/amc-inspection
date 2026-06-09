@@ -2,7 +2,7 @@
 // app.js — Logika utama, navigasi, summary, dan reset
 // ============================================================
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxdyiFTM0up0fNM_2k163AHHbb4skmWXNfn6YLAkWtZSeKlOjgeONVRyjWW1YHoEf4X/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxhe_9PUEe3whyJo4ToE5lchLDPCNoG-g5dXwDcNVxOgv4YKu-vSQM6I2mUFr-8P5GJ/exec";
 
 let currentStep = 0;
 let reportId = "";
