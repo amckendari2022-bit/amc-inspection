@@ -328,24 +328,126 @@ showToast("Error koneksi", true);
 }
 
 function shareWA() {
-  const { good, attn, dmgd } = getChecklistStats();
-  const openF = findings.filter((f) => f.status === "Open").length;
-  const officer = document.getElementById("selOfficer").value;
-  const shift = document.getElementById("selShift").value;
-  const conc = document.getElementById("conclusion").value;
+const officer = document.getElementById("selOfficer").value;
+const shift = document.getElementById("selShift").value;
+const now = new Date();
+const hari = now.toLocaleDateString("id-ID", { weekday: "long" });
+const tanggal = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-  const msg =
-    `*LAPORAN INSPEKSI APRON AMC HLO*\n\n` +
-    `📋 Report ID: ${reportId}\n` +
-    `👤 Petugas: ${officer}\n` +
-    `⏰ Shift: ${shift.split(" ")[0]}\n` +
-    `📅 ${new Date().toLocaleDateString("id-ID")}\n\n` +
-    `✅ Good: ${good} | ⚠️ Attn: ${attn} | ❌ Rusak: ${dmgd}\n` +
-    `🔍 Temuan: ${findings.length} (Open: ${openF})\n\n` +
-    (conc ? `Kesimpulan: ${conc}\n\n` : "") +
-    `_Dikirim dari AMC HLO Inspection System_`;
+function statusItem(key) {
+const s = checklistState[key];
+if (!s) return "(OK)";
+if (s.status === "Good") return "(OK)";
+return `(U/S)${s.note ? " — " + s.note : ""}`;
+}
 
-  window.open("https://wa.me/?text=" + encodeURIComponent(msg));
+// Fasilitas
+const garbarata = statusItem("Aviobridge");
+const floodlight = statusItem("Flood Light");
+const adgs = statusItem("ADGS");
+
+// Kondisi Area
+const serviceRoad = statusItem("Service Road");
+const makeup = statusItem("Makeup Area");
+const breakdown = statusItem("Breakdown Area");
+const drainage = statusItem("Drainage");
+const surface = statusItem("Surface Condition");
+const epa = statusItem("EPA Marking");
+
+// Peralatan & Inventaris
+const ht = statusItem("HT");
+const vhf = statusItem("Portable VHF");
+const komputer = statusItem("Komputer");
+const cctv = statusItem("CCTV Monitor");
+const printer = statusItem("Printer");
+const ac = statusItem("Air Conditioner");
+const followme = statusItem("Follow Me Car");
+const kursi = statusItem("Kursi");
+const meja = statusItem("Meja");
+const loker = statusItem("Loker");
+
+// Temuan
+let temuanText = "- Tidak ada temuan";
+if (findings.length > 0) {
+temuanText = findings.map(f =>
+`- ${f.description} (${f.risk})${f.status === "Open" ? " *[Open]*" : ""}`
+).join("\n");
+}
+
+// Kejadian Khusus & Kesimpulan
+const kejadian = document.getElementById("specialEvents").value.trim() || "Tidak ada";
+const kesimpulan = document.getElementById("conclusion").value.trim() || "-";
+
+const msg =
+`Selamat Pagi 🙏
+
+Kepada Yth.
+KEPALA BLU UPBU HALUOLEO KENDARI
+
+Mohon izin melaporkan observasi awal personil AMC BLU UPBU HALUOLEO KENDARI
+
+📅 Hari/Tanggal : ${hari}, ${tanggal}
+🌅 Shift : ${shift}
+
+👥 *PERSONIL ON DUTY*
+Office Hour
+1.
+2.
+
+Shift Pagi
+1.
+2.
+3.
+4.
+
+Shift Siang
+1.
+2.
+3.
+4.
+
+Kurang :
+Keterangan :
+
+🏗️ *FASILITAS*
+- Garbarata 01-04 ${garbarata}
+- Floodlight 01-07 ${floodlight}
+- ADGS ${adgs}
+
+🛣️ *KONDISI AREA*
+- Service Road ${serviceRoad}
+- Makeup Area ${makeup}
+- Breakdown Area ${breakdown}
+- Drainage ${drainage}
+- Surface Condition ${surface}
+- EPA Marking ${epa}
+
+🛠️ *PERALATAN & INVENTARIS*
+- HT ${ht}
+- Portable VHF ${vhf}
+- Komputer ${komputer}
+- Monitor CCTV ${cctv}
+- Printer ${printer}
+- Air Conditioner ${ac}
+- Follow Me Car ${followme}
+- Kursi ${kursi}
+- Meja ${meja}
+- Loker ${loker}
+
+🔍 *TEMUAN*
+${temuanText}
+
+⚡ *KEJADIAN KHUSUS*
+- ${kejadian}
+
+📝 *KESIMPULAN*
+- ${kesimpulan}
+
+Demikian dilaporkan personil AMC BLU UPBU HALUOLEO KENDARI, mohon kiranya menjadi bahan pemeriksaan.
+
+Terima kasih 🙏`;
+
+window.open("https://wa.me/?text=" + encodeURIComponent(msg));
 }
 
 // ─── RESET ───────────────────────────────────────────────────
