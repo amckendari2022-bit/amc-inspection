@@ -11,281 +11,205 @@ let startTime = new Date();
 // ─── INIT ────────────────────────────────────────────────────
 
 function init() {
-  startTime = new Date();
-  reportId = generateReportId();
+startTime = new Date();
+reportId = generateReportId();
 
-  // Tampilkan tanggal di halaman welcome
-  document.getElementById("welcomeDate").textContent = formatDate(new Date());
+document.getElementById("welcomeDate").textContent = formatDate(new Date());
 
-  // Inisialisasi state checklist
-  buildChecklistState();
+buildChecklistState();
+buildChecklist();
+buildStepBar();
 
-  // Build DOM checklist
-  buildChecklist();
+document.getElementById("selOfficer").addEventListener("change", onOfficerChange);
+document.getElementById("selShift").addEventListener("change", onOfficerChange);
 
-  // Build step bar
-  buildStepBar();
-
-  // Event listener officer & shift
-  document.getElementById("selOfficer").addEventListener("change", onOfficerChange);
-  document.getElementById("selShift").addEventListener("change", onOfficerChange);
-
-  // Inisialisasi signature canvas
-  initSigCanvas();
-
-  // Update tampilan awal
-  updateStepBar();
-  updateBottomNav();
+initSigCanvas();
+updateStepBar();
+updateBottomNav();
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────
 
 function generateReportId() {
-  const d = new Date();
-  const ymd = d.toISOString().slice(0, 10).replace(/-/g, "");
-  const seq = String(Math.floor(Math.random() * 900) + 100);
-  return `AMC-HLO-${ymd}-${seq}`;
+const d = new Date();
+const ymd = d.toISOString().slice(0, 10).replace(/-/g, "");
+const seq = String(Math.floor(Math.random() * 900) + 100);
+return "AMC-HLO-" + ymd + "-" + seq;
 }
 
 function formatDate(d) {
-  return d.toLocaleDateString("id-ID", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+return d.toLocaleDateString("id-ID", {
+weekday: "long", year: "numeric", month: "long", day: "numeric",
+});
 }
 
 function formatTime(d) {
-  return d.toTimeString().slice(0, 5);
+return d.toTimeString().slice(0, 5);
 }
 
-function showToast(msg, isError = false) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.className = "toast show" + (isError ? " error" : "");
-  clearTimeout(el._t);
-  el._t = setTimeout(() => {
-    el.className = "toast";
-  }, 2500);
+function showToast(msg, isError) {
+const el = document.getElementById("toast");
+el.textContent = msg;
+el.className = "toast show" + (isError ? " error" : "");
+clearTimeout(el._t);
+el._t = setTimeout(function() { el.className = "toast"; }, 2500);
 }
 
 // ─── OFFICER ─────────────────────────────────────────────────
 
 function onOfficerChange() {
-  const o = document.getElementById("selOfficer").value;
-  const s = document.getElementById("selShift").value;
-  const box = document.getElementById("reportIdBox");
+const o = document.getElementById("selOfficer").value;
+const s = document.getElementById("selShift").value;
+const box = document.getElementById("reportIdBox");
 
-  // Update nama di topbar
-  document.getElementById("topOfficer").textContent = o
-    ? o.split(" ")[0]
-    : "";
+document.getElementById("topOfficer").textContent = o ? o.split(" ")[0] : "";
+document.getElementById("sigOfficerName").textContent = o;
 
-  // Update nama di halaman TTD
-  document.getElementById("sigOfficerName").textContent = o;
-
-  if (o && s) {
-    document.getElementById("reportIdVal").textContent = reportId;
-    document.getElementById("reportIdTime").textContent =
-      "Jam Mulai: " + formatTime(startTime);
-    box.style.display = "block";
-  } else {
-    box.style.display = "none";
-  }
+if (o && s) {
+document.getElementById("reportIdVal").textContent = reportId;
+document.getElementById("reportIdTime").textContent = "Jam Mulai: " + formatTime(startTime);
+box.style.display = "block";
+} else {
+box.style.display = "none";
+}
 }
 
 // ─── STEP BAR ────────────────────────────────────────────────
 
 function buildStepBar() {
-  const bar = document.getElementById("stepBar");
-  bar.innerHTML = "";
-
-  STEPS_LABEL.forEach((label, i) => {
-    const dot = document.createElement("div");
-    dot.className = "step-dot";
-    dot.id = "stepDot" + i;
-    dot.textContent = i + 1;
-    bar.appendChild(dot);
-
-    if (i < STEPS_LABEL.length - 1) {
-      const line = document.createElement("div");
-      line.className = "step-line";
-      line.id = "stepLine" + i;
-      bar.appendChild(line);
-    }
-  });
-
-  const lbl = document.createElement("span");
-  lbl.className = "step-label";
-  lbl.id = "stepLabel";
-  bar.appendChild(lbl);
+const bar = document.getElementById("stepBar");
+bar.innerHTML = "";
+STEPS_LABEL.forEach(function(label, i) {
+const dot = document.createElement("div");
+dot.className = "step-dot";
+dot.id = "stepDot" + i;
+dot.textContent = i + 1;
+bar.appendChild(dot);
+if (i < STEPS_LABEL.length - 1) {
+const line = document.createElement("div");
+line.className = "step-line";
+line.id = "stepLine" + i;
+bar.appendChild(line);
+}
+});
+const lbl = document.createElement("span");
+lbl.className = "step-label";
+lbl.id = "stepLabel";
+bar.appendChild(lbl);
 }
 
 function updateStepBar() {
-  STEPS_LABEL.forEach((label, i) => {
-    const dot = document.getElementById("stepDot" + i);
-    dot.className = "step-dot";
-    if (i < currentStep) {
-      dot.className = "step-dot done";
-      dot.textContent = "✓";
-    } else if (i === currentStep) {
-      dot.className = "step-dot active";
-      dot.textContent = i + 1;
-    } else {
-      dot.textContent = i + 1;
-    }
-
-    if (i < STEPS_LABEL.length - 1) {
-      const line = document.getElementById("stepLine" + i);
-      line.className = "step-line" + (i < currentStep ? " done" : "");
-    }
-  });
-
-  document.getElementById("stepLabel").textContent = STEPS_LABEL[currentStep];
+STEPS_LABEL.forEach(function(label, i) {
+const dot = document.getElementById("stepDot" + i);
+dot.className = "step-dot";
+if (i < currentStep) { dot.className = "step-dot done"; dot.textContent = "✓"; }
+else if (i === currentStep) { dot.className = "step-dot active"; dot.textContent = i + 1; }
+else { dot.textContent = i + 1; }
+if (i < STEPS_LABEL.length - 1) {
+const line = document.getElementById("stepLine" + i);
+line.className = "step-line" + (i < currentStep ? " done" : "");
+}
+});
+document.getElementById("stepLabel").textContent = STEPS_LABEL[currentStep];
 }
 
 // ─── NAVIGATION ──────────────────────────────────────────────
 
 function nextStep() {
-  if (!canProceed()) return;
-
-  // Build summary sebelum masuk halaman selesai
-  if (currentStep === 4) buildSummary();
-
-  if (currentStep < STEPS_LABEL.length - 1) {
-    document.getElementById("page" + currentStep).classList.remove("active");
-    currentStep++;
-    document.getElementById("page" + currentStep).classList.add("active");
-    updateStepBar();
-    updateBottomNav();
-    window.scrollTo(0, 0);
-  }
+if (!canProceed()) return;
+if (currentStep === 4) buildSummary();
+if (currentStep < STEPS_LABEL.length - 1) {
+document.getElementById("page" + currentStep).classList.remove("active");
+currentStep++;
+document.getElementById("page" + currentStep).classList.add("active");
+updateStepBar();
+updateBottomNav();
+window.scrollTo(0, 0);
+}
 }
 
 function prevStep() {
-  if (currentStep > 0) {
-    document.getElementById("page" + currentStep).classList.remove("active");
-    currentStep--;
-    document.getElementById("page" + currentStep).classList.add("active");
-    updateStepBar();
-    updateBottomNav();
-    window.scrollTo(0, 0);
-  }
+if (currentStep > 0) {
+document.getElementById("page" + currentStep).classList.remove("active");
+currentStep--;
+document.getElementById("page" + currentStep).classList.add("active");
+updateStepBar();
+updateBottomNav();
+window.scrollTo(0, 0);
+}
 }
 
 function canProceed() {
-  if (currentStep === 0) {
-    if (!document.getElementById("selOfficer").value) {
-      showToast("Pilih nama petugas", true);
-      return false;
-    }
-    if (!document.getElementById("selShift").value) {
-      showToast("Pilih shift", true);
-      return false;
-    }
-  }
-  if (currentStep === 4) {
-    if (!sigData) {
-      showToast("Tanda tangan diperlukan", true);
-      return false;
-    }
-  }
-  return true;
+if (currentStep === 0) {
+if (!document.getElementById("selOfficer").value) { showToast("Pilih nama petugas", true); return false; }
+if (!document.getElementById("selShift").value) { showToast("Pilih shift", true); return false; }
+}
+if (currentStep === 4) {
+if (!sigData) { showToast("Tanda tangan diperlukan", true); return false; }
+}
+return true;
 }
 
 function updateBottomNav() {
-  const btnBack = document.getElementById("btnBack");
-  const nav = document.getElementById("bottomNav");
-  const btnNext = document.getElementById("btnNext");
-
-  // Sembunyikan nav di halaman selesai
-  if (currentStep === STEPS_LABEL.length - 1) {
-    nav.style.display = "none";
-    return;
-  }
-
-  nav.style.display = "flex";
-  btnBack.style.visibility = currentStep === 0 ? "hidden" : "visible";
-  btnNext.textContent =
-    currentStep === STEPS_LABEL.length - 2 ? "Simpan Laporan ✓" : "Lanjut →";
+const btnBack = document.getElementById("btnBack");
+const nav = document.getElementById("bottomNav");
+const btnNext = document.getElementById("btnNext");
+if (currentStep === STEPS_LABEL.length - 1) { nav.style.display = "none"; return; }
+nav.style.display = "flex";
+btnBack.style.visibility = currentStep === 0 ? "hidden" : "visible";
+btnNext.textContent = currentStep === STEPS_LABEL.length - 2 ? "Simpan Laporan ✓" : "Lanjut →";
 }
 
 // ─── SUMMARY ─────────────────────────────────────────────────
 
 function buildSummary() {
-  const endTime = new Date();
-  const duration = Math.max(1, Math.round((endTime - startTime) / 60000));
-  const officer = document.getElementById("selOfficer").value;
-  const shift = document.getElementById("selShift").value;
+const endTime = new Date();
+const duration = Math.max(1, Math.round((endTime - startTime) / 60000));
+const officer = document.getElementById("selOfficer").value;
+const shift = document.getElementById("selShift").value;
+const { m, tm } = getChecklistStats();
+const openF = findings.filter(function(f) { return f.status === "Open"; }).length;
 
-  const { good, attn, dmgd } = getChecklistStats();
-  const openF = findings.filter((f) => f.status === "Open").length;
+document.getElementById("completeSub").textContent = "Inspeksi selesai — " + duration + " menit";
 
-  document.getElementById("completeSub").textContent =
-    `Inspeksi selesai — ${duration} menit`;
+const grid = document.getElementById("summaryGrid");
+const items = [
+{ lbl: "Report ID", val: reportId, amber: true, mono: true, small: true },
+{ lbl: "Petugas", val: officer },
+{ lbl: "Shift", val: shift.split(" ")[0] },
+{ lbl: "Jam Mulai", val: formatTime(startTime), mono: true },
+{ lbl: "Jam Selesai", val: formatTime(endTime), mono: true },
+{ lbl: "Durasi", val: duration + " menit", mono: true },
+];
+grid.innerHTML = items.map(function(it) {
+return '<div class="summary-cell"><div class="summary-cell-lbl">' + it.lbl + '</div>' +
+'<div class="summary-cell-val ' + (it.mono ? "mono" : "") + ' ' + (it.amber ? "text-amber" : "") + '" style="' + (it.small ? "font-size:11px" : "") + '">' + it.val + '</div></div>';
+}).join("");
 
-  // Grid info laporan
-  const grid = document.getElementById("summaryGrid");
-  const items = [
-    { lbl: "Report ID", val: reportId, amber: true, mono: true, small: true },
-    { lbl: "Petugas", val: officer },
-    { lbl: "Shift", val: shift.split(" ")[0] },
-    { lbl: "Jam Mulai", val: formatTime(startTime), mono: true },
-    { lbl: "Jam Selesai", val: formatTime(endTime), mono: true },
-    { lbl: "Durasi", val: duration + " menit", mono: true },
-  ];
-  grid.innerHTML = items
-    .map(
-      (it) => `
-      <div class="summary-cell">
-        <div class="summary-cell-lbl">${it.lbl}</div>
-        <div class="summary-cell-val ${it.mono ? "mono" : ""} ${it.amber ? "text-amber" : ""}"
-          style="${it.small ? "font-size:11px" : ""}">
-          ${it.val}
-        </div>
-      </div>`
-    )
-    .join("");
+document.getElementById("summaryStats").innerHTML =
+'<div class="stat-box"><div class="stat-num text-green">' + m + '</div><div class="stat-lbl">M</div></div>' +
+'<div class="stat-box"><div class="stat-num text-red">' + tm + '</div><div class="stat-lbl">TM</div></div>' +
+'<div class="stat-box"><div class="stat-num" style="color:' + (openF > 0 ? "var(--red)" : "var(--green)") + '">' + openF + '</div><div class="stat-lbl">Open</div></div>';
 
-  // Statistik
-  document.getElementById("summaryStats").innerHTML = `
-    <div class="stat-box"><div class="stat-num text-green">${good}</div><div class="stat-lbl">Good</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:#f59e0b">${attn}</div><div class="stat-lbl">Attn</div></div>
-    <div class="stat-box"><div class="stat-num text-red">${dmgd}</div><div class="stat-lbl">Rusak</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:${openF > 0 ? "var(--red)" : "var(--green)"}">${openF}</div><div class="stat-lbl">Open</div></div>
-  `;
-
-  // Findings summary
-  if (findings.length > 0) {
-    document.getElementById("summaryFindingsCard").style.display = "block";
-    document.getElementById("summaryFindingsList").innerHTML = findings
-      .map(
-        (f, i) => `
-        <div class="finding-status-row">
-          <div>
-            <div class="text-sm bold">${f.category} — ${f.location}</div>
-            <div class="text-xs text-muted">${f.risk} risk</div>
-          </div>
-          <button class="btn btn-sm"
-            style="${f.status === "Open" ? "background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3)" : "background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3)"}"
-            onclick="toggleFindingStatusSummary(${i})">
-            ${f.status}
-          </button>
-        </div>`
-      )
-      .join("");
-  } else {
-    document.getElementById("summaryFindingsCard").style.display = "none";
-  }
+if (findings.length > 0) {
+document.getElementById("summaryFindingsCard").style.display = "block";
+document.getElementById("summaryFindingsList").innerHTML = findings.map(function(f, i) {
+var openStyle = f.status === "Open"
+? "background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3)"
+: "background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3)";
+return '<div class="finding-status-row"><div><div class="text-sm bold">' + f.category + ' — ' + f.location + '</div><div class="text-xs text-muted">' + f.risk + ' risk</div></div>' +
+'<button class="btn btn-sm" style="' + openStyle + '" onclick="toggleFindingStatusSummary(' + i + ')">' + f.status + '</button></div>';
+}).join("");
+} else {
+document.getElementById("summaryFindingsCard").style.display = "none";
+}
 }
 
 function toggleFindingStatusSummary(i) {
-  findings[i].status = findings[i].status === "Open" ? "Closed" : "Open";
-  buildSummary();
+findings[i].status = findings[i].status === "Open" ? "Closed" : "Open";
+buildSummary();
 }
 
-// ─── SHARE WHATSAPP ──────────────────────────────────────────
 // ─── SAVE TO GOOGLE SHEETS ───────────────────────────────────
 
 function saveToSheets() {
@@ -314,18 +238,20 @@ fetch(API_URL, {
 method: "POST",
 body: JSON.stringify({ action: "saveReport", payload: payload }),
 })
-.then((res) => res.json())
-.then((data) => {
+.then(function(res) { return res.json(); })
+.then(function(data) {
 if (data.success) {
 showToast("✓ Laporan tersimpan ke database");
 } else {
 showToast("Gagal: " + data.message, true);
 }
 })
-.catch((err) => {
+.catch(function() {
 showToast("Error koneksi", true);
 });
 }
+
+// ─── SHARE WHATSAPP ──────────────────────────────────────────
 
 function shareWA() {
 const officer = document.getElementById("selOfficer").value;
@@ -337,115 +263,78 @@ const tanggal = now.toLocaleDateString("id-ID", { day: "numeric", month: "long",
 function statusItem(key) {
 const s = checklistState[key];
 if (!s) return "(OK)";
-if (s.status === "Good") return "(OK)";
-return `(U/S)${s.note ? " — " + s.note : ""}`;
+if (s.status === "M") return "(OK)";
+return "(U/S)" + (s.note ? " — " + s.note : "");
 }
 
-// Fasilitas
-const garbarata = statusItem("Aviobridge");
-const floodlight = statusItem("Flood Light");
-const adgs = statusItem("ADGS");
+var garbarata = statusItem("Aviobridge");
+var floodlight = statusItem("Flood Light");
+var adgs = statusItem("ADGS");
+var serviceRoad = statusItem("Service Road");
+var parkingStand = statusItem("Parking Stand");
+var koordinat = statusItem("Koordinat Parking Stand");
+var signBox = statusItem("Sign Box");
+var heliport = statusItem("Heliport");
+var ht = statusItem("HT");
+var vhf = statusItem("VHF Portable");
+var cctv = statusItem("CCTV Monitor");
+var apd = statusItem("APD");
+var followme = statusItem("Follow Me Car");
+var komputer = statusItem("Komputer");
+var fod = statusItem("FOD");
+var surface = statusItem("Surface");
+var genangan = statusItem("Genangan Air");
 
-// Kondisi Area
-const serviceRoad = statusItem("Service Road");
-const makeup = statusItem("Makeup Area");
-const breakdown = statusItem("Breakdown Area");
-const drainage = statusItem("Drainage");
-const surface = statusItem("Surface Condition");
-const epa = statusItem("EPA Marking");
-
-// Peralatan & Inventaris
-const ht = statusItem("HT");
-const vhf = statusItem("Portable VHF");
-const komputer = statusItem("Komputer");
-const cctv = statusItem("CCTV Monitor");
-const printer = statusItem("Printer");
-const ac = statusItem("Air Conditioner");
-const followme = statusItem("Follow Me Car");
-const kursi = statusItem("Kursi");
-const meja = statusItem("Meja");
-const loker = statusItem("Loker");
-
-// Temuan
-let temuanText = "- Tidak ada temuan";
+var temuanText = "- Tidak ada temuan";
 if (findings.length > 0) {
-temuanText = findings.map(f =>
-`- ${f.description} (${f.risk})${f.status === "Open" ? " *[Open]*" : ""}`
-).join("\n");
+temuanText = findings.map(function(f) {
+return "- " + f.description + " (" + f.risk + ")" + (f.status === "Open" ? " *[Open]*" : "");
+}).join("\n");
 }
 
-// Kejadian Khusus & Kesimpulan
-const kejadian = document.getElementById("specialEvents").value.trim() || "Tidak ada";
-const kesimpulan = document.getElementById("conclusion").value.trim() || "-";
+var kejadian = document.getElementById("specialEvents").value.trim() || "Tidak ada";
+var kesimpulan = document.getElementById("conclusion").value.trim() || "-";
 
-const msg =
-`Selamat Pagi 🙏
-
-Kepada Yth.
-KEPALA BLU UPBU HALUOLEO KENDARI
-
-Mohon izin melaporkan observasi awal personil AMC BLU UPBU HALUOLEO KENDARI
-
-📅 Hari/Tanggal : ${hari}, ${tanggal}
-🌅 Shift : ${shift}
-
-👥 *PERSONIL ON DUTY*
-Office Hour
-1.
-2.
-
-Shift Pagi
-1.
-2.
-3.
-4.
-
-Shift Siang
-1.
-2.
-3.
-4.
-
-Kurang :
-Keterangan :
-
-🏗️ *FASILITAS*
-- Garbarata 01-04 ${garbarata}
-- Floodlight 01-07 ${floodlight}
-- ADGS ${adgs}
-
-🛣️ *KONDISI AREA*
-- Service Road ${serviceRoad}
-- Makeup Area ${makeup}
-- Breakdown Area ${breakdown}
-- Drainage ${drainage}
-- Surface Condition ${surface}
-- EPA Marking ${epa}
-
-🛠️ *PERALATAN & INVENTARIS*
-- HT ${ht}
-- Portable VHF ${vhf}
-- Komputer ${komputer}
-- Monitor CCTV ${cctv}
-- Printer ${printer}
-- Air Conditioner ${ac}
-- Follow Me Car ${followme}
-- Kursi ${kursi}
-- Meja ${meja}
-- Loker ${loker}
-
-🔍 *TEMUAN*
-${temuanText}
-
-⚡ *KEJADIAN KHUSUS*
-- ${kejadian}
-
-📝 *KESIMPULAN*
-- ${kesimpulan}
-
-Demikian dilaporkan personil AMC BLU UPBU HALUOLEO KENDARI, mohon kiranya menjadi bahan pemeriksaan.
-
-Terima kasih 🙏`;
+var msg =
+"Selamat Pagi 🙏\n\n" +
+"Kepada Yth.\n" +
+"KEPALA BLU UPBU HALUOLEO KENDARI\n\n" +
+"Mohon izin melaporkan observasi awal\n" +
+"personil AMC BLU UPBU HALUOLEO KENDARI\n\n" +
+"📅 Hari/Tanggal : " + hari + ", " + tanggal + "\n" +
+"🌅 Shift : " + shift + "\n\n" +
+"👥 *PERSONIL ON DUTY*\n" +
+"Office Hour\n1.\n2.\n\n" +
+"Shift Pagi\n1.\n2.\n3.\n4.\n\n" +
+"Shift Siang\n1.\n2.\n3.\n4.\n\n" +
+"Kurang :\nKeterangan :\n\n" +
+"🏗️ *FASILITAS*\n" +
+"- Garbarata 01-04 " + garbarata + "\n" +
+"- Floodlight 01-07 " + floodlight + "\n" +
+"- ADGS " + adgs + "\n" +
+"- Koordinat Parking Stand " + koordinat + "\n" +
+"- Sign Box " + signBox + "\n" +
+"- Heliport " + heliport + "\n\n" +
+"🛣️ *KONDISI AREA*\n" +
+"- Service Road " + serviceRoad + "\n" +
+"- Parking Stand " + parkingStand + "\n" +
+"- FOD " + fod + "\n" +
+"- Surface " + surface + "\n" +
+"- Genangan Air " + genangan + "\n\n" +
+"🛠️ *PERALATAN & INVENTARIS*\n" +
+"- HT " + ht + "\n" +
+"- VHF Portable " + vhf + "\n" +
+"- CCTV Monitor " + cctv + "\n" +
+"- APD " + apd + "\n" +
+"- Follow Me Car " + followme + "\n" +
+"- Komputer " + komputer + "\n\n" +
+"🔍 *TEMUAN*\n" + temuanText + "\n\n" +
+"⚡ *KEJADIAN KHUSUS*\n- " + kejadian + "\n\n" +
+"📝 *KESIMPULAN*\n- " + kesimpulan + "\n\n" +
+"Demikian dilaporkan personil AMC BLU UPBU\n" +
+"HALUOLEO KENDARI, mohon kiranya menjadi\n" +
+"bahan pemeriksaan.\n\n" +
+"Terima kasih 🙏";
 
 window.open("https://wa.me/?text=" + encodeURIComponent(msg));
 }
@@ -453,45 +342,36 @@ window.open("https://wa.me/?text=" + encodeURIComponent(msg));
 // ─── RESET ───────────────────────────────────────────────────
 
 function resetApp() {
-  if (!confirm("Mulai inspeksi baru? Semua data saat ini akan direset.")) return;
+if (!confirm("Mulai inspeksi baru? Semua data saat ini akan direset.")) return;
 
-  // Reset state
-  currentStep = 0;
-  findings = [];
-  sigData = null;
-  reportId = generateReportId();
-  startTime = new Date();
+currentStep = 0;
+findings = [];
+sigData = null;
+reportId = generateReportId();
+startTime = new Date();
 
-  // Reset checklist
-  buildChecklistState();
+buildChecklistState();
 
-  // Reset form fields
-  document.getElementById("selOfficer").value = "";
-  document.getElementById("selShift").value = "";
-  document.getElementById("specialEvents").value = "";
-  document.getElementById("conclusion").value = "";
-  document.getElementById("nextShift").value = "";
-  document.getElementById("reportIdBox").style.display = "none";
-  document.getElementById("topOfficer").textContent = "";
-  document.getElementById("summaryFindingsCard").style.display = "none";
+document.getElementById("selOfficer").value = "";
+document.getElementById("selShift").value = "";
+document.getElementById("specialEvents").value = "";
+document.getElementById("conclusion").value = "";
+document.getElementById("nextShift").value = "";
+document.getElementById("reportIdBox").style.display = "none";
+document.getElementById("topOfficer").textContent = "";
+document.getElementById("summaryFindingsCard").style.display = "none";
 
-  // Reset signature
-  clearSig();
+clearSig();
+buildChecklist();
+renderFindings();
 
-  // Rebuild UI
-  buildChecklist();
-  renderFindings();
+document.querySelectorAll(".step-page").forEach(function(p) { p.classList.remove("active"); });
+document.getElementById("page0").classList.add("active");
+document.getElementById("bottomNav").style.display = "flex";
 
-  // Kembali ke halaman pertama
-  document.querySelectorAll(".step-page").forEach((p) =>
-    p.classList.remove("active")
-  );
-  document.getElementById("page0").classList.add("active");
-  document.getElementById("bottomNav").style.display = "flex";
-
-  updateStepBar();
-  updateBottomNav();
-  window.scrollTo(0, 0);
+updateStepBar();
+updateBottomNav();
+window.scrollTo(0, 0);
 }
 
 // ─── START ───────────────────────────────────────────────────
