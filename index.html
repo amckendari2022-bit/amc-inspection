@@ -9,7 +9,7 @@
 <body>
 <div class="app">
 
-  <!-- ── TOPBAR ── -->
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-logo">✈️</div>
     <div>
@@ -22,10 +22,10 @@
     </div>
   </div>
 
-  <!-- ── STEP BAR ── -->
+  <!-- STEP BAR -->
   <div class="step-bar" id="stepBar"></div>
 
-  <!-- ── CONTENT ── -->
+  <!-- CONTENT -->
   <div class="content">
 
     <!-- STEP 0: PETUGAS -->
@@ -54,6 +54,10 @@
               <option value="">Pilih shift...</option>
             </select>
           </div>
+          <div class="field">
+            <label class="lbl" for="inputCuaca">Cuaca</label>
+            <input type="text" id="inputCuaca" placeholder="Contoh: Cerah, Berawan, Hujan..." />
+          </div>
           <div id="reportIdBox" class="report-id-box" style="display:none">
             <div class="report-id-lbl">Report ID</div>
             <div class="report-id-val" id="reportIdVal"></div>
@@ -72,16 +76,13 @@
         </div>
         <div class="card-body">
           <p class="text-sm text-muted mb-3">
-            Semua item default: <span class="text-green bold">GOOD</span>.
+            Semua item default: <span class="text-green bold">M</span> (Memenuhi).
             Ubah hanya item yang bermasalah.
           </p>
           <div class="stat-row">
-            <div class="stat-row">
-                  <div class="stat-box"><div class="stat-num text-green" id="statGood">0</div><div class="stat-lbl">M</div></div>
-                  <div class="stat-box"><div class="stat-num text-red" id="statDmgd">0</div><div class="stat-lbl">TM</div></div>
-                  <div class="stat-box"><div class="stat-num text-amber" id="statScore">100%</div><div class="stat-lbl">Score</div></div>
-            </div>
-
+            <div class="stat-box"><div class="stat-num text-green" id="statGood">0</div><div class="stat-lbl">M</div></div>
+            <div class="stat-box"><div class="stat-num text-red" id="statDmgd">0</div><div class="stat-lbl">TM</div></div>
+            <div class="stat-box"><div class="stat-num text-amber" id="statScore">100%</div><div class="stat-lbl">Score</div></div>
           </div>
           <div class="progress-wrap">
             <div class="progress-fill" id="progressFill" style="width:100%"></div>
@@ -164,6 +165,12 @@
         <div class="complete-icon">✅</div>
         <div class="complete-title">LAPORAN TERSIMPAN</div>
         <div class="complete-sub" id="completeSub"></div>
+
+        <div id="fileLinkBox" style="display:none; margin-top:12px;">
+          <a id="fileLink" href="#" target="_blank" class="btn btn-primary btn-full" style="text-decoration:none">
+            📂 Buka Checklist di Drive
+          </a>
+        </div>
       </div>
       <div class="card">
         <div class="card-header"><span>📊</span><span class="card-header-title">Ringkasan Laporan</span></div>
@@ -180,8 +187,8 @@
         <div class="card-header"><span>🚀</span><span class="card-header-title">Aksi</span></div>
         <div class="card-body">
           <div style="display:flex;flex-direction:column;gap:10px">
-            <button  class="btn btn-primary btn-full" onclick="saveToSheets()">
-              💾 Simpan ke Database
+            <button class="btn btn-primary btn-full" onclick="saveToSheets()">
+              💾 Simpan ke Drive
             </button>
             <button class="btn btn-wa btn-full" onclick="shareWA()">
               📱 Bagikan via WhatsApp
@@ -196,7 +203,7 @@
 
   </div><!-- /content -->
 
-  <!-- ── BOTTOM NAV ── -->
+  <!-- BOTTOM NAV -->
   <div class="bottom-nav" id="bottomNav">
     <button class="btn btn-ghost" style="flex:1" id="btnBack" onclick="prevStep()">← Kembali</button>
     <button class="btn btn-primary" style="flex:2" id="btnNext" onclick="nextStep()">Lanjut →</button>
@@ -204,7 +211,7 @@
 
 </div><!-- /app -->
 
-<!-- ── FINDING MODAL ── -->
+<!-- FINDING MODAL -->
 <div class="modal-overlay" id="findingModal" onclick="modalOverlayClick(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -222,7 +229,6 @@
       </select>
     </div>
 
-    <!-- Wildlife Module -->
     <div class="wildlife-box" id="wildlifeBox" style="display:none">
       <div class="wildlife-title">🐦 Wildlife Module</div>
       <div class="field">
@@ -273,61 +279,54 @@
   </div>
 </div>
 
-<!-- ── TOAST ── -->
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- ── SCRIPTS ── -->
-<!-- Urutan penting: data dulu, lalu modul, lalu app -->
+<!-- SCRIPTS -->
 <script src="js/data.js"></script>
 <script src="js/checklist.js"></script>
 <script src="js/findings.js"></script>
 <script src="js/signature.js"></script>
 <script src="js/app.js"></script>
 
-<!-- Populate dropdowns dari data.js -->
 <script>
-  // Isi dropdown officer
-  const selOfficer = document.getElementById("selOfficer");
-  OFFICERS.forEach(name => {
-    const opt = document.createElement("option");
-    opt.textContent = name;
+  var selOfficer = document.getElementById("selOfficer");
+  for (var i = 0; i < OFFICERS.length; i++) {
+    var opt = document.createElement("option");
+    opt.textContent = OFFICERS[i];
     selOfficer.appendChild(opt);
-  });
+  }
 
-  // Isi dropdown shift
-  const selShift = document.getElementById("selShift");
-  SHIFTS.forEach(s => {
-    const opt = document.createElement("option");
-    opt.textContent = s;
-    selShift.appendChild(opt);
-  });
+  var selShift = document.getElementById("selShift");
+  for (var j = 0; j < SHIFTS.length; j++) {
+    var opt2 = document.createElement("option");
+    opt2.textContent = SHIFTS[j];
+    selShift.appendChild(opt2);
+  }
 
-  // Isi dropdown lokasi finding
-  const fLoc = document.getElementById("fLoc");
+  var fLoc = document.getElementById("fLoc");
   fLoc.innerHTML = '<option value="">Pilih lokasi...</option>';
-  FINDING_LOCATIONS.forEach(l => {
-    const opt = document.createElement("option");
-    opt.textContent = l;
-    fLoc.appendChild(opt);
-  });
+  for (var k = 0; k < FINDING_LOCATIONS.length; k++) {
+    var opt3 = document.createElement("option");
+    opt3.textContent = FINDING_LOCATIONS[k];
+    fLoc.appendChild(opt3);
+  }
 
-  // Isi dropdown kategori finding
-  const fCat = document.getElementById("fCat");
+  var fCat = document.getElementById("fCat");
   fCat.innerHTML = '<option value="">Pilih kategori...</option>';
-  FINDING_CATEGORIES.forEach(c => {
-    const opt = document.createElement("option");
-    opt.textContent = c;
-    fCat.appendChild(opt);
-  });
+  for (var l = 0; l < FINDING_CATEGORIES.length; l++) {
+    var opt4 = document.createElement("option");
+    opt4.textContent = FINDING_CATEGORIES[l];
+    fCat.appendChild(opt4);
+  }
 
-  // Isi dropdown jenis hewan
-  const fAnimal = document.getElementById("fAnimal");
+  var fAnimal = document.getElementById("fAnimal");
   fAnimal.innerHTML = '<option value="">Pilih...</option>';
-  ANIMAL_TYPES.forEach(a => {
-    const opt = document.createElement("option");
-    opt.textContent = a;
-    fAnimal.appendChild(opt);
-  });
+  for (var m = 0; m < ANIMAL_TYPES.length; m++) {
+    var opt5 = document.createElement("option");
+    opt5.textContent = ANIMAL_TYPES[m];
+    fAnimal.appendChild(opt5);
+  }
 </script>
 
 </body>
