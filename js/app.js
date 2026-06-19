@@ -2,7 +2,8 @@
 // app.js — Logika utama, navigasi, summary, dan reset
 // ============================================================
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxhe_9PUEe3whyJo4ToE5lchLDPCNoG-g5dXwDcNVxOgv4YKu-vSQM6I2mUFr-8P5GJ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbymtaEW48YpZF9sQCI07X7Jdnk4u30z3FsQ1OP2LalveYDM1-JP3JP17I02n3fLgSelMw/exec";
+
 
 let currentStep = 0;
 let reportId = "";
@@ -224,6 +225,8 @@ jamMulai: formatTime(startTime),
 jamSelesai: formatTime(now),
 petugas: officer,
 shift: shift,
+cuaca: document.getElementById("inputCuaca").value || "",
+namaDinas: document.getElementById("inputNamaDinas").value || "",
 checklist: checklistState,
 findings: findings,
 kejadianKhusus: document.getElementById("specialEvents").value,
@@ -241,7 +244,11 @@ body: JSON.stringify({ action: "saveReport", payload: payload }),
 .then(function(res) { return res.json(); })
 .then(function(data) {
 if (data.success) {
-showToast("✓ Laporan tersimpan ke database");
+showToast("✓ Laporan tersimpan ke Drive");
+if (data.fileUrl) {
+document.getElementById("fileLink").href = data.fileUrl;
+document.getElementById("fileLinkBox").style.display = "block";
+}
 } else {
 showToast("Gagal: " + data.message, true);
 }
