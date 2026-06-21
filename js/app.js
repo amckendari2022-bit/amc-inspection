@@ -233,7 +233,7 @@ function toggleFindingStatusSummary(i) {
 function generateAndSavePDF(callback) {
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF({ unit: "mm", format: "a4" });
-
+  var tmPhotosCollection = [];
   var officer = document.getElementById("selOfficer").value;
   var shift = document.getElementById("selShift").value;
   var cuacaEl = document.getElementById("inputCuaca");
@@ -347,10 +347,59 @@ function generateAndSavePDF(callback) {
       doc.text(note, margin + 87, y + 4);
       doc.text("-", margin + 137, y + 4);
 
+      
+if (state.status === "TM" && state.photos && state.photos.length > 0) {
+  tmPhotosCollection.push({
+    itemName: itemName,
+    note: state.note,
+    photos: state.photos
+  });
+}
       y += rowH;
     });
   });
 
+if (tmPhotosCollection.length > 0) {
+  if (y > 250) { doc.addPage(); y = 15; }
+  y += 4;
+  doc.setFillColor(26, 58, 110);
+  doc.setTextColor(255, 255, 255);
+  doc.rect(margin, y, pageWidth - margin * 2, 6, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("FOTO DOKUMENTASI ITEM TM", margin + 3, y + 4.2);
+  y += 9;
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+
+  tmPhotosCollection.forEach(function(item) {
+    var boxH = 30;
+    if (y + boxH > 280) { doc.addPage(); y = 15; }
+
+    doc.setDrawColor(252, 165, 165);
+    doc.rect(margin, y, pageWidth - margin * 2, boxH);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(220, 38, 38);
+    doc.text(item.itemName, margin + 3, y + 5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.text((item.note || "-").substring(0, 90), margin + 3, y + 10);
+
+    var photoX = margin + 3;
+    var photoY = y + 13;
+    var photoW = 35;
+    var photoH = 15;
+    for (var p = 0; p < Math.min(item.photos.length, 4); p++) {
+      try {
+        doc.addImage(item.photos[p].url, "JPEG", photoX, photoY, photoW, photoH);
+      } catch (e) {}
+      photoX += photoW + 3;
+    }
+
+    y += boxH + 3;
+  });
+}
   // Temuan
   if (findings.length > 0) {
     if (y > 250) { doc.addPage(); y = 15; }
@@ -439,30 +488,42 @@ function generateAndSavePDF(callback) {
 }
 
 function saveToSheets() {
-  var officer = document.getElementById("selOfficer").value;
-  var shift = document.getElementById("selShift").value;
-  var cuacaEl = document.getElementById("inputCuaca");
-  var now = new Date();
+  showToast("Membuat PDF...");
 
-  var simpleChecklist = {};
-  for (var key in checklistState) {
-    simpleChecklist[key] = {
-      status: checklistState[key].status,
-      note: checklistState[key].note || ""
+  generateAndSavePDF(function(pdfBase64) {
+    var now = new Date();
+    var shift = document.getElementById("selShift").value;
+
+    var pdfPayload = {
+      tanggal: now.toLocaleDateString("id-ID"),
+      shift: shift,
+      pdfBase64: pdfBase64
     };
-  }
 
-  var simpleFindings = [];
-  for (var i = 0; i < findings.length; i++) {
-    var f = findings[i];
-    simpleFindings.push({
-      location: f.location,
-      category: f.category,
-      risk: f.risk,
-      description: f.description,
-      status: f.status
-    });
-  }
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "savePDF", payload: pdfPayload })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          showToast("Laporan tersimpan ke Drive");
+          var linkEl = document.getElementById("fileLink");
+          var boxEl = document.getElementById("fileLinkBox");
+          if (linkEl && boxEl) {
+            linkEl.href = data.pdfUrl;
+            boxEl.style.display = "block";
+          }
+          window._lastPdfUrl = data.pdfUrl;
+        } else {
+          showToast("Gagal: " + data.message, true);
+        }
+      })
+      .catch(function(err) {
+        showToast("Error koneksi: " + err.message, true);
+      });
+  });
+}
 
   var payload = {
     tanggal: now.toLocaleDateString("id-ID"),
@@ -521,7 +582,7 @@ function saveToSheets() {
     .catch(function(err) {
       showToast("Error koneksi: " + err.message, true);
     });
-}
+  
 // ─── SHARE WHATSAPP ──────────────────────────────────────────
 
 function shareWA() {
