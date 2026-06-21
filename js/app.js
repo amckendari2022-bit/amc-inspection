@@ -330,6 +330,7 @@ function generateAndSavePDF(callback) {
       doc.rect(margin + 136, y, pageWidth - margin * 2 - 136, rowH);
 
       doc.setFontSize(7.5);
+      var noIdx = Object.keys(ITEM_ROWS_PDF || {}).length;
       doc.text(String(idx + 1), margin + 5, y + 4, { align: "center" });
       doc.text(itemName.substring(0, 38), margin + 11, y + 4);
 
@@ -367,15 +368,34 @@ function generateAndSavePDF(callback) {
     doc.setFontSize(8);
 
     findings.forEach(function(f) {
-      if (y > 270) { doc.addPage(); y = 15; }
-      doc.setDrawColor(220, 220, 220);
-      doc.rect(margin, y, pageWidth - margin * 2, 16);
-      doc.setFont("helvetica", "bold");
-      doc.text(f.location + " / " + f.category + " (" + f.risk + ")", margin + 3, y + 5);
-      doc.setFont("helvetica", "normal");
-      doc.text(f.description.substring(0, 90), margin + 3, y + 10);
-      y += 19;
-    });
+  var hasPhoto = f.photos && f.photos.length > 0;
+  var boxHeight = hasPhoto ? 32 : 16;
+
+  if (y + boxHeight > 280) { doc.addPage(); y = 15; }
+
+  doc.setDrawColor(220, 220, 220);
+  doc.rect(margin, y, pageWidth - margin * 2, boxHeight);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text(f.location + " / " + f.category + " (" + f.risk + ")", margin + 3, y + 5);
+  doc.setFont("helvetica", "normal");
+  doc.text(f.description.substring(0, 90), margin + 3, y + 10);
+
+  if (hasPhoto) {
+    var photoX = margin + 3;
+    var photoY = y + 13;
+    var photoW = 35;
+    var photoH = 18;
+    for (var p = 0; p < Math.min(f.photos.length, 3); p++) {
+      try {
+        doc.addImage(f.photos[p].url, "JPEG", photoX, photoY, photoW, photoH);
+      } catch (e) {}
+      photoX += photoW + 3;
+    }
+  }
+
+  y += boxHeight + 3;
+ });
   }
 
   // Penutup
