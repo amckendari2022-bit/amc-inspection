@@ -330,7 +330,6 @@ function generateAndSavePDF(callback) {
       doc.rect(margin + 136, y, pageWidth - margin * 2 - 136, rowH);
 
       doc.setFontSize(7.5);
-      var noIdx = Object.keys(ITEM_ROWS_PDF || {}).length;
       doc.text(String(idx + 1), margin + 5, y + 4, { align: "center" });
       doc.text(itemName.substring(0, 38), margin + 11, y + 4);
 
