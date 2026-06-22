@@ -29,6 +29,33 @@
       border-color: var(--amber);
       font-weight: 700;
     }
+    .ron-item {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .ron-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .ron-del {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .siang-only { display: none; }
   </style>
 </head>
 <body>
@@ -75,7 +102,7 @@
           </div>
           <div class="field">
             <label class="lbl" for="selShift">Shift</label>
-            <select id="selShift">
+            <select id="selShift" onchange="onShiftChange()">
               <option value="">Pilih shift...</option>
             </select>
           </div>
@@ -83,7 +110,6 @@
             <label class="lbl" for="inputCuaca">Cuaca</label>
             <input type="text" id="inputCuaca" placeholder="Contoh: Cerah, Berawan, Hujan..." />
           </div>
-
           <div class="field">
             <label class="lbl">Personil On Duty — Office Hour</label>
             <div id="onDutyOfficeHour" class="onduty-grid"></div>
@@ -96,7 +122,21 @@
             <label class="lbl">Personil On Duty — Dinas Siang</label>
             <div id="onDutySiang" class="onduty-grid"></div>
           </div>
-
+          <div class="field">
+            <label class="lbl" for="inputKurang">Kekurangan Personel (orang)</label>
+            <input type="number" id="inputKurang" min="0" placeholder="0" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="inputKetKurang">Keterangan Kekurangan</label>
+            <select id="inputKetKurang">
+              <option value="-">-</option>
+              <option>Cuti</option>
+              <option>Sakit</option>
+              <option>Izin</option>
+              <option>Dinas Luar</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
           <div id="reportIdBox" class="report-id-box" style="display:none">
             <div class="report-id-lbl">Report ID</div>
             <div class="report-id-val" id="reportIdVal"></div>
@@ -162,16 +202,56 @@
         <div class="card-body">
           <div class="field">
             <label class="lbl" for="specialEvents">Kejadian Khusus</label>
-            <textarea id="specialEvents" placeholder="Catat kejadian khusus selama shift (jika ada)..." style="min-height:90px"></textarea>
+            <textarea id="specialEvents" placeholder="Catat kejadian khusus selama shift (jika ada)..." style="min-height:70px"></textarea>
           </div>
           <div class="field">
             <label class="lbl" for="conclusion">Kesimpulan</label>
-            <textarea id="conclusion" placeholder="Kesimpulan umum kondisi apron..." style="min-height:90px"></textarea>
+            <textarea id="conclusion" placeholder="Kesimpulan umum kondisi apron..." style="min-height:70px"></textarea>
           </div>
           <div class="field">
             <label class="lbl" for="nextShift">Catatan Shift Berikutnya</label>
-            <textarea id="nextShift" placeholder="Hal-hal yang perlu diperhatikan shift berikutnya..." style="min-height:90px"></textarea>
+            <textarea id="nextShift" placeholder="Hal-hal yang perlu diperhatikan..." style="min-height:70px"></textarea>
           </div>
+          <div class="field">
+            <label class="lbl" for="inputParkingLink">Link Alokasi Parking Stand</label>
+            <input type="text" id="inputParkingLink" placeholder="https://drive.google.com/..." />
+          </div>
+
+          <!-- KHUSUS SHIFT SIANG -->
+          <div id="siangSection" class="siang-only">
+            <div class="divider" style="height:1px;background:var(--border);margin:14px 0"></div>
+            <p class="text-xs mono text-amber" style="margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">Laporan Akhir — Pergerakan Penerbangan</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+              <div class="field">
+                <label class="lbl">Total Flight</label>
+                <input type="number" id="inputTotalFlight" min="0" placeholder="0" />
+              </div>
+              <div class="field">
+                <label class="lbl">Arrival</label>
+                <input type="number" id="inputArrival" min="0" placeholder="0" />
+              </div>
+              <div class="field">
+                <label class="lbl">Departure</label>
+                <input type="number" id="inputDeparture" min="0" placeholder="0" />
+              </div>
+              <div class="field">
+                <label class="lbl">Docking</label>
+                <input type="number" id="inputDocking" min="0" placeholder="0" />
+              </div>
+              <div class="field">
+                <label class="lbl">Undocking</label>
+                <input type="number" id="inputUndocking" min="0" placeholder="0" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="lbl">Aircraft RON</label>
+              <div id="ronContainer"></div>
+              <button class="btn btn-ghost btn-sm btn-full" style="margin-top:8px" onclick="addRON()">+ Tambah Aircraft RON</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -204,10 +284,9 @@
         <div class="complete-icon">✅</div>
         <div class="complete-title">LAPORAN TERSIMPAN</div>
         <div class="complete-sub" id="completeSub"></div>
-
         <div id="fileLinkBox" style="display:none; margin-top:12px;">
           <a id="fileLink" href="#" target="_blank" class="btn btn-primary btn-full" style="text-decoration:none">
-            📂 Buka Checklist di Drive
+            📂 Buka PDF di Drive
           </a>
         </div>
       </div>
@@ -255,26 +334,21 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modalTitle">Temuan Baru</div>
-
     <div class="field">
       <label class="lbl">Lokasi</label>
       <select id="fLoc"></select>
     </div>
-
     <div class="field">
       <label class="lbl">Kategori</label>
       <select id="fCat" onchange="onCatChange()">
         <option value="">Pilih kategori...</option>
       </select>
     </div>
-
     <div class="wildlife-box" id="wildlifeBox" style="display:none">
       <div class="wildlife-title">🐦 Wildlife Module</div>
       <div class="field">
         <label class="lbl">Jenis Hewan</label>
-        <select id="fAnimal">
-          <option value="">Pilih...</option>
-        </select>
+        <select id="fAnimal"><option value="">Pilih...</option></select>
       </div>
       <div class="field">
         <label class="lbl">Jumlah</label>
@@ -285,7 +359,6 @@
         <textarea id="fMitigation" placeholder="Tindakan yang diambil..." style="min-height:70px"></textarea>
       </div>
     </div>
-
     <div class="field">
       <label class="lbl">Tingkat Risiko</label>
       <div class="risk-pills">
@@ -294,12 +367,10 @@
         <div class="risk-pill" id="rHigh" onclick="setRisk('High')"   style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08)">High</div>
       </div>
     </div>
-
     <div class="field">
       <label class="lbl">Deskripsi</label>
       <textarea id="fDesc" placeholder="Deskripsi temuan..." style="min-height:80px"></textarea>
     </div>
-
     <div class="field">
       <label class="lbl">Foto (Wajib)</label>
       <div class="photo-upload-area" onclick="document.getElementById('fPhotoInput').click()">
@@ -310,7 +381,6 @@
       <input type="file" id="fPhotoInput" accept="image/*" multiple onchange="handleFindingPhotos(event)" />
       <div class="photo-grid" id="fPhotoGrid"></div>
     </div>
-
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" onclick="closeFindingModal()">Batal</button>
       <button class="btn btn-primary" style="flex:2" onclick="saveFinding()">Simpan Temuan</button>
@@ -330,6 +400,7 @@
 <script src="js/app.js"></script>
 
 <script>
+  // Populate dropdowns
   var selOfficer = document.getElementById("selOfficer");
   for (var i = 0; i < OFFICERS.length; i++) {
     var opt = document.createElement("option");
@@ -368,6 +439,7 @@
     fAnimal.appendChild(opt5);
   }
 
+  // Build on duty chips
   function buildOnDutyChips(containerId, groupName) {
     var container = document.getElementById(containerId);
     container.innerHTML = "";
