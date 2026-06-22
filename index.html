@@ -5,6 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>AMC Haluoleo — Inspeksi Harian</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .onduty-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .onduty-chip {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      font-size: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .onduty-chip.active {
+      background: var(--amber);
+      color: #000;
+      border-color: var(--amber);
+      font-weight: 700;
+    }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -43,7 +68,7 @@
         </div>
         <div class="card-body">
           <div class="field">
-            <label class="lbl" for="selOfficer">Nama Petugas</label>
+            <label class="lbl" for="selOfficer">Nama Petugas (Pengisi Laporan)</label>
             <select id="selOfficer">
               <option value="">Pilih petugas...</option>
             </select>
@@ -58,6 +83,20 @@
             <label class="lbl" for="inputCuaca">Cuaca</label>
             <input type="text" id="inputCuaca" placeholder="Contoh: Cerah, Berawan, Hujan..." />
           </div>
+
+          <div class="field">
+            <label class="lbl">Personil On Duty — Office Hour</label>
+            <div id="onDutyOfficeHour" class="onduty-grid"></div>
+          </div>
+          <div class="field">
+            <label class="lbl">Personil On Duty — Dinas Pagi</label>
+            <div id="onDutyPagi" class="onduty-grid"></div>
+          </div>
+          <div class="field">
+            <label class="lbl">Personil On Duty — Dinas Siang</label>
+            <div id="onDutySiang" class="onduty-grid"></div>
+          </div>
+
           <div id="reportIdBox" class="report-id-box" style="display:none">
             <div class="report-id-lbl">Report ID</div>
             <div class="report-id-val" id="reportIdVal"></div>
@@ -328,6 +367,25 @@
     opt5.textContent = ANIMAL_TYPES[m];
     fAnimal.appendChild(opt5);
   }
+
+  function buildOnDutyChips(containerId, groupName) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = "";
+    for (var i = 0; i < OFFICERS.length; i++) {
+      var name = OFFICERS[i];
+      var chip = document.createElement("div");
+      chip.className = "onduty-chip";
+      chip.textContent = name;
+      chip.onclick = (function(n, grp, el) {
+        return function() { toggleOnDuty(grp, n, el); };
+      })(name, groupName, chip);
+      container.appendChild(chip);
+    }
+  }
+
+  buildOnDutyChips("onDutyOfficeHour", "officeHour");
+  buildOnDutyChips("onDutyPagi", "pagi");
+  buildOnDutyChips("onDutySiang", "siang");
 </script>
 
 </body>
