@@ -89,7 +89,7 @@ function toggleOnDuty(group, name, chipEl) {
   }
 }
 
-function getOnDutyText(group) {
+function buildPersonilLines(group) {
   var list = onDutyState[group];
   if (!list || list.length === 0) return "-";
   var lines = [];
@@ -102,7 +102,6 @@ function getOnDutyText(group) {
 // ─── RON ─────────────────────────────────────────────────────
 
 function addRON() {
-  var idx = ronList.length;
   ronList.push({ flight: "", reg: "", type: "", stand: "" });
   renderRON();
 }
@@ -367,9 +366,9 @@ function generateAndSavePDF(callback) {
   y += 8;
 
   var groups = [
-    { label: "Office Hour (08.00 – 16.30)", key: "officeHour" },
-    { label: "Dinas Pagi (06.00 – 13.30)", key: "pagi" },
-    { label: "Dinas Siang (12.30 – 20.00)", key: "siang" }
+    { label: "Office Hour (08.00 - 16.30)", key: "officeHour" },
+    { label: "Dinas Pagi (06.00 - 13.30)", key: "pagi" },
+    { label: "Dinas Siang (12.30 - 20.00)", key: "siang" }
   ];
   doc.setFontSize(8);
   for (var gIdx = 0; gIdx < groups.length; gIdx++) {
@@ -483,7 +482,6 @@ function generateAndSavePDF(callback) {
       var photoH = 55;
       var rows = Math.ceil(Math.min(item.photos.length, 4) / photosPerRow);
       var boxH = 16 + (rows * (photoH + 4));
-
       if (y + boxH > 280) { doc.addPage(); y = 15; }
       doc.setDrawColor(252, 165, 165);
       doc.rect(margin, y, pageWidth - margin * 2, boxH);
@@ -494,7 +492,6 @@ function generateAndSavePDF(callback) {
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 0, 0);
       doc.text((item.note || "-").substring(0, 90), margin + 3, y + 11);
-
       var photoStartY = y + 14;
       for (var p = 0; p < Math.min(item.photos.length, 4); p++) {
         var col = p % photosPerRow;
@@ -529,7 +526,6 @@ function generateAndSavePDF(callback) {
       var photoCount = hasPhoto ? Math.min(f.photos.length, 4) : 0;
       var photoRows = hasPhoto ? Math.ceil(photoCount / photosPerRow) : 0;
       var boxH = 16 + (photoRows * (photoH + 4));
-
       if (y + boxH > 280) { doc.addPage(); y = 15; }
       doc.setDrawColor(220, 220, 220);
       doc.rect(margin, y, pageWidth - margin * 2, boxH);
@@ -538,7 +534,6 @@ function generateAndSavePDF(callback) {
       doc.text(f.location + " / " + f.category + " (" + f.risk + ")", margin + 3, y + 5);
       doc.setFont("helvetica", "normal");
       doc.text(f.description.substring(0, 90), margin + 3, y + 11);
-
       if (hasPhoto) {
         var photoStartY = y + 14;
         for (var p = 0; p < photoCount; p++) {
@@ -582,7 +577,6 @@ function generateAndSavePDF(callback) {
       y += 6;
     }
 
-    // RON
     if (ronList.length > 0) {
       y += 4;
       doc.setFont("helvetica", "bold");
@@ -694,26 +688,80 @@ function shareWA() {
     return "U/S" + (s.note ? " — " + s.note : "");
   }
 
+  // Build fasilitas lines
+  function buildFasilitasLines() {
+    var lines = [];
+
+    // Garbarata per unit
+    var avioState = checklistState["Aviobridge"];
+    if (!avioState || avioState.status === "M") {
+      lines.push("- Garbarata 01 : OK");
+      lines.push("- Garbarata 02 : OK");
+      lines.push("- Garbarata 03 : OK");
+      lines.push("- Garbarata 04 : OK");
+    } else {
+      var tmAvio = avioState.units || [];
+      ["Garbarata 01", "Garbarata 02", "Garbarata 03", "Garbarata 04"].forEach(function(u) {
+        lines.push("- " + u + " : " + (tmAvio.indexOf(u) > -1 ? "U/S" : "OK"));
+      });
+    }
+
+    // Flood Light
+    var floodState = checklistState["Flood Light"];
+    if (!floodState || floodState.status === "M") {
+      lines.push("- Floodlight 01-07 : OK");
+    } else {
+      var tmFlood = floodState.units || [];
+      if (tmFlood.length === 0) {
+        lines.push("- Floodlight 01-07 : U/S" + (floodState.note ? " — " + floodState.note : ""));
+      } else {
+        ["Floodlight 01", "Floodlight 02", "Floodlight 03", "Floodlight 04",
+         "Floodlight 05", "Floodlight 06", "Floodlight 07"].forEach(function(u) {
+          lines.push("- " + u + " : " + (tmFlood.indexOf(u) > -1 ? "U/S" : "OK"));
+        });
+      }
+    }
+
+    // ADGS per parking stand
+    var adgsState = checklistState["ADGS"];
+    if (!adgsState || adgsState.status === "M") {
+      lines.push("- ADGS Parking Stand 02 : OK");
+      lines.push("- ADGS Parking Stand 03 : OK");
+    } else {
+      var tmADGS = adgsState.units || [];
+      ["Parking Stand 02", "Parking Stand 03"].forEach(function(u) {
+        lines.push("- ADGS " + u + " : " + (tmADGS.indexOf(u) > -1 ? "U/S" : "OK"));
+      });
+    }
+
+    // Item fasilitas lainnya
+    lines.push("- Apron : " + statusItem("Parking Stand"));
+    lines.push("- Marka ESA : " + statusItem("ESA"));
+    lines.push("- Koordinat Sign Box : " + statusItem("Koordinat Parking Stand"));
+
+    return lines.join("\n");
+  }
+
+  // Item TM lainnya (selain yang sudah di fasilitas)
+  var skipItems = ["Aviobridge", "Flood Light", "ADGS", "Parking Stand", "ESA", "Koordinat Parking Stand",
+    "HT", "VHF Portable", "CCTV Monitor", "APD", "Follow Me Car", "Komputer"];
+  var tmOtherLines = [];
+  for (var key in checklistState) {
+    if (skipItems.indexOf(key) === -1 && checklistState[key].status === "TM") {
+      tmOtherLines.push("- " + key + " : U/S" + (checklistState[key].note ? " — " + checklistState[key].note : ""));
+    }
+  }
+
   var kurang = document.getElementById("inputKurang") ? document.getElementById("inputKurang").value || "0" : "0";
   var ketKurang = document.getElementById("inputKetKurang") ? document.getElementById("inputKetKurang").value || "-" : "-";
   var parkingLink = document.getElementById("inputParkingLink") ? document.getElementById("inputParkingLink").value || "" : "";
+  var kejadian = document.getElementById("specialEvents") ? document.getElementById("specialEvents").value.trim() : "";
 
   var temuanLines = [];
   for (var i = 0; i < findings.length; i++) {
     temuanLines.push("- " + findings[i].description);
   }
   var temuanText = temuanLines.length > 0 ? temuanLines.join("\n") : "- Tidak ada temuan";
-
-  var kejadian = document.getElementById("specialEvents") ? document.getElementById("specialEvents").value.trim() : "";
-
-  // Personil
-  function buildPersonilLines(group) {
-    var list = onDutyState[group];
-    if (!list || list.length === 0) return "-";
-    var lines = [];
-    for (var i = 0; i < list.length; i++) { lines.push((i + 1) + ". " + list[i]); }
-    return lines.join("\n");
-  }
 
   var msg = salam + "\n\n" +
     "Yth. Kepala BLU UPBU Haluoleo Kendari\n\n" +
@@ -729,19 +777,18 @@ function shareWA() {
     "Shift Siang:\n" + buildPersonilLines("siang") + "\n\n" +
     "Kekurangan Personel : " + kurang + " orang\n" +
     "Keterangan : " + ketKurang + "\n\n" +
-    "Fasilitas:\n" +
-    "- Garbarata 01 : " + statusItem("Aviobridge") + "\n" +
-    "- Garbarata 02 : " + statusItem("Aviobridge") + "\n" +
-    "- Garbarata 03 : " + statusItem("Aviobridge") + "\n" +
-    "- Garbarata 04 : " + statusItem("Aviobridge") + "\n" +
-    "- Floodlight 01-07 : " + statusItem("Flood Light") + "\n" +
-    "- ADGS : " + statusItem("ADGS") + "\n" +
-    "- Apron : " + statusItem("Parking Stand") + "\n\n" +
+    "Fasilitas:\n" + buildFasilitasLines() + "\n\n" +
     "Peralatan & Inventaris:\n" +
     "- HT : " + statusItem("HT") + "\n" +
     "- VHF Portable : " + statusItem("VHF Portable") + "\n" +
     "- Komputer : " + statusItem("Komputer") + "\n" +
-    "- Monitor CCTV : " + statusItem("CCTV Monitor") + "\n\n";
+    "- Monitor CCTV : " + statusItem("CCTV Monitor") + "\n";
+
+  if (tmOtherLines.length > 0) {
+    msg += "\nItem TM Lainnya:\n" + tmOtherLines.join("\n") + "\n";
+  }
+
+  msg += "\n";
 
   if (isSiang()) {
     var totalFlight = document.getElementById("inputTotalFlight") ? document.getElementById("inputTotalFlight").value || "0" : "0";
@@ -767,19 +814,15 @@ function shareWA() {
     }
   }
 
-  msg += "Temuan:\n" + temuanText + "\n\n";
+  msg += "Temuan:\n" + temuanText + "\n";
 
-  if (kejadian) { msg += "Kejadian Khusus:\n" + kejadian + "\n\n"; }
+  if (kejadian) { msg += "\nKejadian Khusus:\n" + kejadian + "\n"; }
 
-  if (parkingLink) {
-    msg += "Lampiran Alokasi Parking Stand:\n" + parkingLink + "\n\n";
-  }
+  if (parkingLink) { msg += "\nLampiran Alokasi Parking Stand:\n" + parkingLink + "\n"; }
 
-  if (window._lastPdfUrl) {
-    msg += "Link Checklist:\n" + window._lastPdfUrl + "\n\n";
-  }
+  if (window._lastPdfUrl) { msg += "\nLink Checklist:\n" + window._lastPdfUrl + "\n"; }
 
-  msg += "Demikian laporan hasil observasi Personel AMC BLU UPBU Haluoleo Kendari\n" +
+  msg += "\nDemikian laporan hasil observasi Personel AMC BLU UPBU Haluoleo Kendari\n" +
     "disampaikan untuk menjadi bahan monitoring dan tindak lanjut.\n\n" +
     "Terima kasih.";
 
@@ -804,17 +847,19 @@ function resetApp() {
 
   document.getElementById("selOfficer").value = "";
   document.getElementById("selShift").value = "";
-  document.getElementById("inputCuaca").value = "";
+  if (document.getElementById("inputCuaca")) document.getElementById("inputCuaca").value = "";
   document.getElementById("specialEvents").value = "";
   document.getElementById("conclusion").value = "";
   document.getElementById("nextShift").value = "";
-  document.getElementById("inputKurang").value = "";
-  document.getElementById("inputKetKurang").value = "-";
-  document.getElementById("inputParkingLink").value = "";
+  if (document.getElementById("inputKurang")) document.getElementById("inputKurang").value = "";
+  if (document.getElementById("inputKetKurang")) document.getElementById("inputKetKurang").value = "-";
+  if (document.getElementById("inputParkingLink")) document.getElementById("inputParkingLink").value = "";
   document.getElementById("reportIdBox").style.display = "none";
   document.getElementById("topOfficer").textContent = "";
   document.getElementById("summaryFindingsCard").style.display = "none";
-  document.getElementById("siangSection").style.display = "none";
+
+  var siangSection = document.getElementById("siangSection");
+  if (siangSection) siangSection.style.display = "none";
 
   var flightFields = ["inputTotalFlight", "inputArrival", "inputDeparture", "inputDocking", "inputUndocking"];
   for (var fi = 0; fi < flightFields.length; fi++) {
