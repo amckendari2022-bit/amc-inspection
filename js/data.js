@@ -2,7 +2,7 @@
 // data.js — Data konstan aplikasi AMC HLO Inspection
 // ============================================================
 
-const OFFICERS = [
+var OFFICERS = [
 "Sadli",
 "Miswan Rianti",
 "Rury Ramdhan",
@@ -14,28 +14,28 @@ const OFFICERS = [
 "Alqadri Yusuf",
 "Muh. Shaum",
 "Rivaldy Afriansyah",
-"Hening Wisnu",
+"Hening Wisnu"
 ];
 
-const SHIFTS = [
+var SHIFTS = [
 "Dinas Pagi (06.00 - 13.30)",
 "Dinas Siang (12.30 - 20.00)",
-"Dinas Malam (20.00 - 06.00)",
+"Office Hour (07.30 - 16.00)"
 ];
 
-const STATUSES = ["M", "TM"];
+var STATUSES = ["M", "TM"];
 
-const STATUS_COLORS = {
+var STATUS_COLORS = {
 M: "#22c55e",
-TM: "#ef4444",
+TM: "#ef4444"
 };
 
-const STATUS_BG = {
+var STATUS_BG = {
 M: "rgba(34,197,94,0.08)",
-TM: "rgba(239,68,68,0.08)",
+TM: "rgba(239,68,68,0.08)"
 };
 
-const CHECKLIST_DATA = [
+var CHECKLIST_DATA = [
 {
 category: "Perlengkapan",
 items: [
@@ -44,16 +44,16 @@ items: [
 "CCTV Monitor",
 "APD",
 "Follow Me Car",
-"Komputer",
-],
+"Komputer"
+]
 },
 {
 category: "Apron Inspection",
 items: [
 "FOD",
 "Surface",
-"Genangan Air",
-],
+"Genangan Air"
+]
 },
 {
 category: "Apron Marking",
@@ -67,8 +67,8 @@ items: [
 "No Parking Area",
 "Parking Clearance",
 "Tug Parking Position Line",
-"Apron Edge Marking",
-],
+"Apron Edge Marking"
+]
 },
 {
 category: "Equipment and Facility",
@@ -80,8 +80,8 @@ items: [
 "Flood Light",
 "Koordinat Parking Stand",
 "Sign Box",
-"Heliport",
-],
+"Heliport"
+]
 },
 {
 category: "Operasional",
@@ -97,12 +97,12 @@ items: [
 "Pushback Operation",
 "Marshalling Aircraft",
 "Tumpahan BBM/Oli",
-"Wildlife Hazard",
-],
-},
+"Wildlife Hazard"
+]
+}
 ];
 
-const FINDING_LOCATIONS = [
+var FINDING_LOCATIONS = [
 "Parking Stand 01",
 "Parking Stand 02",
 "Parking Stand 03",
@@ -116,10 +116,10 @@ const FINDING_LOCATIONS = [
 "Makeup Area",
 "Breakdown Area",
 "Terminal",
-"Lainnya",
+"Lainnya"
 ];
 
-const FINDING_CATEGORIES = [
+var FINDING_CATEGORIES = [
 "FOD",
 "Wildlife",
 "Drainage",
@@ -128,23 +128,23 @@ const FINDING_CATEGORIES = [
 "Equipment",
 "Safety",
 "Operasional",
-"Lainnya",
+"Lainnya"
 ];
 
-const RISK_LEVELS = ["Low", "Medium", "High"];
+var RISK_LEVELS = ["Low", "Medium", "High"];
 
-const ANIMAL_TYPES = ["Bird", "Dog", "Cat", "Monitor Lizard", "Lainnya"];
+var ANIMAL_TYPES = ["Bird", "Dog", "Cat", "Monitor Lizard", "Lainnya"];
 
-const STEPS_LABEL = ["Petugas", "Checklist", "Temuan", "Penutup", "TTD", "Selesai"];
+var STEPS_LABEL = ["Petugas", "Checklist", "Temuan", "Penutup", "TTD", "Selesai"];
 
-const RISK_COLORS = {
+var RISK_COLORS = {
 Low: "#22c55e",
 Medium: "#f59e0b",
-High: "#ef4444",
+High: "#ef4444"
 };
 
-const RISK_BG = {
+var RISK_BG = {
 Low: "rgba(34,197,94,0.15)",
 Medium: "rgba(245,158,11,0.15)",
-High: "rgba(239,68,68,0.15)",
+High: "rgba(239,68,68,0.15)"
 };
