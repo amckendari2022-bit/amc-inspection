@@ -748,7 +748,7 @@ function shareWA() {
   var tmOtherLines = [];
   for (var key in checklistState) {
     if (skipItems.indexOf(key) === -1 && checklistState[key].status === "TM") {
-      tmOtherLines.push("- " + key + " : U/S" + (checklistState[key].note ? " — " + checklistState[key].note : ""));
+      tmOtherLines.push("- " + key +  (checklistState[key].note ? " — " + checklistState[key].note : "TM"));
     }
   }
 
