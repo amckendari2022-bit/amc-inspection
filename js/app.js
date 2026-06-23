@@ -363,7 +363,7 @@ function generateAndSavePDF(callback) {
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
   doc.text("PERSONIL ON DUTY", pageWidth / 2, y + 4.2, { align: "center" });
-  y += 8;
+  y += 10;
 
   var groups = [
     { label: "Office Hour (08.00 - 16.30)", key: "officeHour" },
@@ -377,7 +377,7 @@ function generateAndSavePDF(callback) {
     if (y > 270) { doc.addPage(); y = 15; }
     doc.setFont("helvetica", "bold");
     doc.text(g.label + ":", margin, y);
-    y += 5;
+    y += 6;
     doc.setFont("helvetica", "normal");
     if (names && names.length > 0) {
       for (var nIdx = 0; nIdx < names.length; nIdx++) {
