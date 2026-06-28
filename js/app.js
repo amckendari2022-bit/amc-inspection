@@ -1,4 +1,4 @@
-// ============================================================
+=// ============================================================
 // app.js — Logika utama, navigasi, summary, simpan, dan reset
 // ============================================================
 
@@ -548,19 +548,18 @@ function generateAndSavePDF(callback) {
     });
   }
 
-  // Pergerakan penerbangan (shift siang)
+ // Pergerakan penerbangan (shift siang)
   if (isSiang()) {
-    if (y > 240) { doc.addPage(); y = 15; }
-    y += 5;
+    if (y > 220) { doc.addPage(); y = 15; }
+    y += 8;
     doc.setFillColor(26, 58, 110);
     doc.setTextColor(255, 255, 255);
-    doc.rect(margin, y, pageWidth - margin * 2, 6, "F");
+    doc.rect(margin, y, pageWidth - margin * 2, 7, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("PERGERAKAN PENERBANGAN", margin + 3, y + 4.2);
-    y += 9;
+    doc.text("PERGERAKAN PENERBANGAN", margin + 3, y + 5);
+    y += 14;
     doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
 
     var flightData = [
       ["Total Flight", document.getElementById("inputTotalFlight") ? document.getElementById("inputTotalFlight").value || "0" : "0"],
@@ -569,30 +568,110 @@ function generateAndSavePDF(callback) {
       ["Docking", document.getElementById("inputDocking") ? document.getElementById("inputDocking").value || "0" : "0"],
       ["Undocking", document.getElementById("inputUndocking") ? document.getElementById("inputUndocking").value || "0" : "0"]
     ];
+
     for (var fi = 0; fi < flightData.length; fi++) {
+      if (y > 275) { doc.addPage(); y = 15; }
       doc.setFont("helvetica", "bold");
-      doc.text(flightData[fi][0] + " :", margin + 3, y);
+      doc.setFontSize(9);
+      doc.text(flightData[fi][0], margin + 3, y);
       doc.setFont("helvetica", "normal");
-      doc.text(flightData[fi][1], margin + 50, y);
-      y += 6;
+      doc.text(": " + flightData[fi][1], margin + 45, y);
+      y += 8;
     }
 
     if (ronList.length > 0) {
       y += 4;
+      if (y > 260) { doc.addPage(); y = 15; }
       doc.setFont("helvetica", "bold");
-      doc.text("Aircraft RON:", margin, y);
-      y += 5;
+      doc.setFontSize(9);
+      doc.text("Aircraft RON:", margin + 3, y);
+      y += 8;
       doc.setFont("helvetica", "normal");
       for (var ri = 0; ri < ronList.length; ri++) {
+        if (y > 275) { doc.addPage(); y = 15; }
         var ron = ronList[ri];
-        var ronText = (ri + 1) + ". " + ron.flight + " / " + ron.reg + " (" + ron.type + ") — " + ron.stand;
-        doc.text(ronText, margin + 4, y);
-        y += 5;
+        doc.text((ri + 1) + ".  " + ron.flight + " / " + ron.reg + " (" + ron.type + ") — " + ron.stand, margin + 6, y);
+        y += 7;
       }
     }
-  }
 
-  // Penutup
+    y += 6;
+
+    // Kejadian Khusus
+    if (y > 260) { doc.addPage(); y = 15; }
+    var kejadianPDF = document.getElementById("specialEvents") ? document.getElementById("specialEvents").value || "-" : "-";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Kejadian Khusus:", margin + 3, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    var splitKejadian = doc.splitTextToSize(kejadianPDF, pageWidth - margin * 2 - 6);
+    doc.text(splitKejadian, margin + 3, y);
+    y += splitKejadian.length * 6 + 6;
+
+    // Kesimpulan
+    if (y > 260) { doc.addPage(); y = 15; }
+    var kesimpulanPDF = document.getElementById("conclusion") ? document.getElementById("conclusion").value || "-" : "-";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Kesimpulan:", margin + 3, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    var splitKesimpulan = doc.splitTextToSize(kesimpulanPDF, pageWidth - margin * 2 - 6);
+    doc.text(splitKesimpulan, margin + 3, y);
+    y += splitKesimpulan.length * 6 + 6;
+
+    // Link Parking
+    var parkingLinkPDF = document.getElementById("inputParkingLink") ? document.getElementById("inputParkingLink").value || "" : "";
+    if (parkingLinkPDF) {
+      if (y > 265) { doc.addPage(); y = 15; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("Lampiran Alokasi Parking Stand:", margin + 3, y);
+      y += 7;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(parkingLinkPDF.substring(0, 90), margin + 3, y);
+      y += 8;
+    }
+  } else {
+    // Shift Pagi — Kejadian Khusus & Kesimpulan
+    y += 6;
+    if (y > 260) { doc.addPage(); y = 15; }
+    var kejadianPagi = document.getElementById("specialEvents") ? document.getElementById("specialEvents").value || "-" : "-";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Kejadian Khusus:", margin + 3, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    var splitKejadianPagi = doc.splitTextToSize(kejadianPagi, pageWidth - margin * 2 - 6);
+    doc.text(splitKejadianPagi, margin + 3, y);
+    y += splitKejadianPagi.length * 6 + 6;
+
+    if (y > 260) { doc.addPage(); y = 15; }
+    var kesimpulanPagi = document.getElementById("conclusion") ? document.getElementById("conclusion").value || "-" : "-";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Kesimpulan:", margin + 3, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    var splitKesimpulanPagi = doc.splitTextToSize(kesimpulanPagi, pageWidth - margin * 2 - 6);
+    doc.text(splitKesimpulanPagi, margin + 3, y);
+    y += splitKesimpulanPagi.length * 6 + 6;
+
+    var parkingPagi = document.getElementById("inputParkingLink") ? document.getElementById("inputParkingLink").value || "" : "";
+    if (parkingPagi) {
+      if (y > 265) { doc.addPage(); y = 15; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("Lampiran Alokasi Parking Stand:", margin + 3, y);
+      y += 7;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(parkingPagi.substring(0, 90), margin + 3, y);
+      y += 8;
+    }
+  }
   y += 5;
   if (y > 260) { doc.addPage(); y = 15; }
   var kejadian = document.getElementById("specialEvents") ? document.getElementById("specialEvents").value || "Tidak ada" : "Tidak ada";
